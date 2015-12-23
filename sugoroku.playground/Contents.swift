@@ -1,4 +1,28 @@
 import UIKit
+
+extension CollectionType {
+  /// Return a copy of `self` with its elements shuffled
+  func shuffle() -> [Generator.Element] {
+    var list = Array(self)
+    list.shuffleInPlace()
+    return list
+  }
+}
+
+extension MutableCollectionType where Index == Int {
+  /// Shuffle the elements of `self` in-place.
+  mutating func shuffleInPlace() {
+    // empty and single-element collections don't shuffle
+    if count < 2 { return }
+    
+    for i in 0..<count - 1 {
+      let j = Int(arc4random_uniform(UInt32(count - i))) + i
+      guard i != j else { continue }
+      swap(&self[i], &self[j])
+    }
+  }
+}
+
 class Game {
   var players:[Player] = [Player]()
   var board:Board?
@@ -22,33 +46,39 @@ class Game {
     players.append(player)
   }
   
-  func movePlayerTo(player:Player, to:Int) {
-    
-  }
-  
   func setDice(dice:Dice){
     self.dice = dice
   }
   
   private func decidePlayerOrder() {
-    self.players
+    self.players = self.players.shuffle()
+    for (i, player) in players.enumerate() {
+      print("\(i+1)番：\(player.name)")
+    }
+  }
+  
+  private func action(player:Player) {
+    player.action(self.dice!)
+    self.board!.grids[player.position].event()
   }
   
   func start() {
     print("すごろくスタート")
-    // サイコロを降る順番を決める
     decidePlayerOrder()
-    // 順番にサイコロを振る
-    // マスのイベントが発生する
-    // ゴールに達しているプレイヤーがいないかチェックする
-    // ゴールに達しているプレイヤーがいればゲームを終わる
-    print("あがり！")
-    // どちらかのユーザーのマスがboardのマスの上限を超えるまでサイコロを降る。
+    var isAnyPlayerGoal = false
+    while(!isAnyPlayerGoal) {
+      for player in players {
+        action(player)
+        if(player.position >= self.board!.grid_count) {
+          print("\(player.name)があがり！")
+          isAnyPlayerGoal = true
+        }
+      }
+    }
   }
 }
 
 class Board {
-  
   var grid_count:Int
   var grids:[Grid] = [Grid]()
   
@@ -57,7 +87,6 @@ class Board {
     self.grids = createGrids()
     print("マスは\(self.grid_count)マス")
   }
-
   
   private func createGrids() -> [Grid] {
     var grids = [Grid]()
@@ -83,8 +112,14 @@ class Player {
     print("\(name)が参加しました。")
   }
   
-  func setPosition(position:Int) {
-    self.position = position
+  func action(dice:Dice) {
+    let spot = dice.rollDice()
+    self.moveTo(spot)
+    print("\(self.name)の出目は\(spot)")
+  }
+  
+  func moveTo(to:Int) {
+    self.position = self.position + to
     print("\(self.name)が\(self.position)マスへ移動しました。")
   }
 }
@@ -97,7 +132,9 @@ class Grid {
 }
 
 class VanillaGrid : Grid{
-  
+  func aboutMe() ->String {
+    return "普通のマス"
+  }
 }
 
 class Dice {
@@ -106,7 +143,7 @@ class Dice {
   init() {
     print("ダイスは\(spot)面")
   }
-  // 1~spotまでのランダムの整数を返す
+  // TODO: 1~spotまでのランダムの整数を返す
   func rollDice() -> Int {
     let n = 6
     return n
