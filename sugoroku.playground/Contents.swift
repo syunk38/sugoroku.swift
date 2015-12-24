@@ -32,7 +32,7 @@ class Game {
   static let sharedInstance = Game()
   
   init() {
-    print("すごろくの準備をします。")
+    print("すごろくをはじめます。")
   }
   
   static func getInstance() -> Game {
@@ -51,6 +51,7 @@ class Game {
     self.dice = dice
   }
   
+  // Playersというclass作って責務委譲してもいいかもね
   private func decidePlayerOrder() {
     self.players = self.players.shuffle()
     for (i, player) in players.enumerate() {
@@ -58,15 +59,12 @@ class Game {
     }
   }
   
-  private func action(player:Player) {
-    player.action(self.dice!)
-    self.board!.grids[player.position].event()
-  }
-  
-  private func play(players:[Player]) -> Bool {
-    for player in players {
-      self.action(player)
-      if(player.position >= self.board!.grid_count) {
+  private func play() -> Bool {
+    for player in self.players {
+      player.diceRoll(self.dice!)
+      self.board!.grids[player.position].event()
+      
+      if player.position >= self.board!.grid_count {
         print("\(player.name)があがり！")
         return true
       }
@@ -75,11 +73,11 @@ class Game {
   }
   
   func start() {
-    print("すごろくスタート")
     decidePlayerOrder()
+    print("すごろくスタート！")
     var isAnyPlayerGoal = false
-    while(!isAnyPlayerGoal) {
-      isAnyPlayerGoal = play(self.players)
+    while !isAnyPlayerGoal {
+      isAnyPlayerGoal = play()
     }
   }
 }
@@ -94,6 +92,7 @@ class Board {
     print("マスは\(self.grid_count)マス")
   }
   
+  // TODO: grid_countを引数に取る形にリファクタリング
   private func createGrids() -> [Grid] {
     var grids = [Grid]()
     for _ in 1...self.grid_count {
@@ -118,10 +117,10 @@ class Player {
     print("\(name)が参加しました。")
   }
   
-  func action(dice:Dice) {
-    let spot = dice.rollDice()
-    self.moveTo(spot)
+  func diceRoll(dice:Dice) {
+    let spot = dice.roll()
     print("\(self.name)の出目は\(spot)")
+    self.moveTo(spot)
   }
   
   func moveTo(to:Int) {
@@ -150,7 +149,7 @@ class Dice {
     print("ダイスは\(spot)面")
   }
   // TODO: 1~spotまでのランダムの整数を返す
-  func rollDice() -> Int {
+  func roll() -> Int {
     let n = 6
     return n
   }
@@ -161,4 +160,6 @@ game.setBoard(Board(grid_count: 30))
 game.setDice(Dice())
 game.addPlayer(Player(name: "マオ"))
 game.addPlayer(Player(name: "シンジ"))
+game.addPlayer(Player(name: "明希"))
+game.addPlayer(Player(name: "ゆうや"))
 game.start()
