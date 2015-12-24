@@ -1,5 +1,6 @@
 import UIKit
 
+// CollectionTypeプロトコルを拡張してshuffle()関数を追加している
 extension CollectionType {
   /// Return a copy of `self` with its elements shuffled
   func shuffle() -> [Generator.Element] {
@@ -62,18 +63,23 @@ class Game {
     self.board!.grids[player.position].event()
   }
   
+  private func play(players:[Player]) -> Bool {
+    for player in players {
+      self.action(player)
+      if(player.position >= self.board!.grid_count) {
+        print("\(player.name)があがり！")
+        return true
+      }
+    }
+    return false
+  }
+  
   func start() {
     print("すごろくスタート")
     decidePlayerOrder()
     var isAnyPlayerGoal = false
     while(!isAnyPlayerGoal) {
-      for player in players {
-        action(player)
-        if(player.position >= self.board!.grid_count) {
-          print("\(player.name)があがり！")
-          isAnyPlayerGoal = true
-        }
-      }
+      isAnyPlayerGoal = play(self.players)
     }
   }
 }
