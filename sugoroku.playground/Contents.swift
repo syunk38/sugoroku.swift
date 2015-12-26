@@ -97,13 +97,13 @@ class Board {
     var grids = [Grid]()
     for _ in 1...self.grid_count {
       grids.append(getGrid())
-      grids.append(Grid()) // ゴールは普通のマス
+      grids.append(VanillaGrid()) // ゴールは普通のマス
     }
     return grids
   }
   
   private func getGrid() -> Grid{
-    return Grid()
+    return VanillaGrid()
   }
   
 }
@@ -129,16 +129,28 @@ class Player {
   }
 }
 
-class Grid {
-  // 発火するイベント
-  func event() {
-    
-  }
+protocol Grid {
+  var name : String {get}
+  
+  func event()
 }
 
 class VanillaGrid : Grid{
+  init () {
+    
+  }
+  var name:String{
+    get {
+      return "普通のマス"
+    }
+  }
+  
   func aboutMe() ->String {
     return "普通のマス"
+  }
+  
+  func event() {
+    
   }
 }
 
@@ -150,16 +162,16 @@ class Dice {
   }
   // TODO: 1~spotまでのランダムの整数を返す
   func roll() -> Int {
-    let n = 6
-    return n
+    let r = Int(arc4random() % self.spot) + 1
+    return r
   }
 }
 
 var game = Game.getInstance()
 game.setBoard(Board(grid_count: 30))
 game.setDice(Dice())
-game.addPlayer(Player(name: "マオ"))
-game.addPlayer(Player(name: "シンジ"))
-game.addPlayer(Player(name: "明希"))
-game.addPlayer(Player(name: "ゆうや"))
+game.addPlayer(Player(name: "hyde"))
+game.addPlayer(Player(name: "tetsuya"))
+game.addPlayer(Player(name: "ken"))
+game.addPlayer(Player(name: "yukihiro"))
 game.start()
